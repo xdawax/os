@@ -50,7 +50,7 @@
 #include <stdlib.h>    // EXIT_FAILURE, EXIT_SUCCESS
 #include <string.h>    // strcmp() 
 #include <unistd.h>    // execvp(), fork(), getpid(), getppid(),
-                       // STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO
+// STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO
 #include <sys/wait.h>  // wait()
 #include <signal.h>    // SIGPIPE
 #include <sys/types.h> // pid_t
@@ -61,39 +61,39 @@
 
 int main(void) {
   
-        // Allocate a buffer for the command line read from the user. 
-        char command_line_buffer[COMMAND_LINE_BUFFER_SIZE];
+    // Allocate a buffer for the command line read from the user. 
+    char command_line_buffer[COMMAND_LINE_BUFFER_SIZE];
   
-        // Parse the command line using the next_command() parser. The
-        // parser will populate the following array with the result of each call
-        // to the parser.
-        char* argv[MAX_ARGV_SIZE];  
+    // Parse the command line using the next_command() parser. The
+    // parser will populate the following array with the result of each call
+    // to the parser.
+    char* argv[MAX_ARGV_SIZE];  
     
-        // Count the number of non empty command lines.
-        int command_line_nr = 0;
+    // Count the number of non empty command lines.
+    int command_line_nr = 0;
   
-        // Count the number of children forked for each command line. 
-        int num_of_children = 0; 
+    // Count the number of children forked for each command line. 
+    int num_of_children = 0; 
   
-        while(1) {
+    while(1) {
 
-            command_line_nr = read_command_line(command_line_nr, 
-                                                command_line_buffer, 
-                                                COMMAND_LINE_BUFFER_SIZE);
+        command_line_nr = read_command_line(command_line_nr, 
+                                            command_line_buffer, 
+                                            COMMAND_LINE_BUFFER_SIZE);
     
-            num_of_children = execute_command_line(command_line_buffer, argv);
+        num_of_children = execute_command_line(command_line_buffer, argv);
 
-            int wait_status;
+        int wait_status;
             
-            for (int i = 0; i < num_of_children; i ++) {
-                wait(&wait_status);
-                // TODO 1: Make the parent wait for all children. 
-            }
+        for (int i = 0; i < num_of_children; i ++) {
+            wait(&wait_status);
+            // TODO 1: Make the parent wait for all children. 
+        }
 
 
-            fflush(NULL);
+        fflush(NULL);
  
-        } // end while(1)
+    } // end while(1)
 } // end of main()
 
 
@@ -143,7 +143,6 @@ int execute_command_line(char *line, char *argv[]) {
         pos = next_command(line, argv);
     
         create_pipe(pos, right_pipe);
-
     
         fork_child(pos, left_pipe, right_pipe, argv);
 
@@ -166,12 +165,16 @@ void create_pipe(enum cmd_pos pos, int new_pipe[]) {
     // TODO 2: If there are more than one command in the pipeline,
     //         create a pipe for all but the last command.
 
-    if (pos == single || pos == last) {
+    if (pos == last || pos == single) {
+        printf("create_pipe last or single\n");
         return;
     }
     else {
+        printf("create_pipe middle\n");
         int pipe_val = pipe(new_pipe);
-        pipe_val += 1;  // to cheat warning
+        if (pipe_val < 0) {
+            assert(false);
+        }
     }
 }
 
@@ -219,10 +222,8 @@ void parent_close_pipes(enum cmd_pos pos, int left_pipe[], int right_pipe[]) {
 
     // TODO 3: The parent must close un-used pipe descriptors. You need
     // to figure out wich descriptors that must be closes when.
-    close(left_pipe[1]);
     close(left_pipe[0]);
-    close(right_pipe[0]);
-    close(right_pipe[1]);
+   
 }
 
 
@@ -234,7 +235,7 @@ void child_redirect_io(enum cmd_pos pos, int left_pipe[], int right_pipe[]) {
 
     if (pos == first) {
         dup2(right_pipe[1], STDOUT_FILENO);
-        printf("piping first: %d\n", STDOUT_FILENO);
+    
     }
     else if (pos == middle) {
         dup2(left_pipe[0], STDIN_FILENO);
@@ -243,6 +244,8 @@ void child_redirect_io(enum cmd_pos pos, int left_pipe[], int right_pipe[]) {
     else if (pos == last) {
         dup2(left_pipe[0], STDIN_FILENO);
     }
+
+    printf("done redirecting\n");
 
 }
 

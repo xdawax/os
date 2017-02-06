@@ -23,12 +23,12 @@
 #include <sys/wait.h>
 
 #include "common.h"
-
+#include <assert.h>
 // These flags control the termination of the main loop and indicate the winner.
 volatile sig_atomic_t winner = 0;
 
 // TODO 1: Change this to 0 to make the children spin in the for loop before they receive the SIGUSR2 signal
-volatile sig_atomic_t results = 1;
+volatile sig_atomic_t results = 0;
 
 
 // end_handler - handle the SIGUSR2 signal, the player will receive
@@ -59,11 +59,11 @@ void end_handler(int signum)
 void win_handler(int signum)
 {
   // TODO 4: Check that the signum is indeed SIGUSR1, otherwise exit with failure
-
-
+    
+    assert(!(signum == SIGUSR1));
   // TODO 5: this player is the winner, make the appropriate changes upon reception of this singal
   //         - use the "results" flag declared earlier
-
+    
 
   // register the signal handler for the next use
   signal(signum, win_handler);
@@ -86,28 +86,25 @@ void shooter(int id, int seed_fd_rd, int score_fd_wr)
 
 
 	// TODO 7: Install SIGUSR2 handler
-
-        printf("seed_fd_rd == %d\n", seed_fd_rd);
-
+  
 	pid = getpid();
 
 	fprintf(stderr, "player %d: I'm in this game (PID = %ld)\n",
 		id, (long)pid);
 
-        
-	// TODO 8: roll the dice, but before that, read a seed from the parent via pipe
 
-        read(seed_fd_rd, &seed, sizeof(int));
-        
+	// TODO 8: roll the dice, but before that, read a seed from the parent via pipe
+    int read_value = read(seed_fd_rd, &seed, sizeof(int));
+
 	srand(seed);
-        printf("Seed is: %d\n", seed);
+
 	score = rand() % 10000;
-        
+	
 	fprintf(stderr, "player %d: I scored %d (PID = %ld)\n", id, score, (long)pid);
 
 
 	// TODO 9: send my score back to the master via pipe
-        write(score_fd_wr, &score, sizeof(int));
+    int write_value = write(score_fd_wr, &score, sizeof(int));
 
 	// spin while I wait for the results
 	while (!results) ;
@@ -121,7 +118,9 @@ void shooter(int id, int seed_fd_rd, int score_fd_wr)
 
 	// TODO 10: free resources and exit with success
 
-        sleep(3);
+    close(seed_fd_rd);
+    close(score_fd_wr);
+    sleep(3);
 	exit(EXIT_SUCCESS);
 }
 
