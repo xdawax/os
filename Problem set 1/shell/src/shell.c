@@ -222,9 +222,23 @@ void parent_close_pipes(enum cmd_pos pos, int left_pipe[], int right_pipe[]) {
 
     // TODO 3: The parent must close un-used pipe descriptors. You need
     // to figure out wich descriptors that must be closes when.
+    if (pos == first) {
+        close(left_pipe[0]);
+        close(right_pipe[1]);
+    }
+    else if (pos == middle) {
+        close(left_pipe[0]);
+        close(right_pipe[1]);
+    }
+    else if (pos == last) {
+        close(left_pipe[0]);
+        close(right_pipe[1]);
+    }
+    
+    /*
     close(left_pipe[0]);
     close(right_pipe[1]);
-   
+    */
 }
 
 

@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
         if (pipe(seed_pipe[i]) != 0) {
             printf("Bug when opening pipe!\n");
         }
+        printf("%d, %d\n", score_pipe[i][0], score_pipe[i][1]);
 	}
 
 
