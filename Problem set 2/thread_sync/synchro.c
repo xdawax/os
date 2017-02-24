@@ -78,8 +78,8 @@ inc_cas(void *arg __attribute__((unused)))
     /* TODO 2: Use the compare and swap primitive to manipulate the shared
      * variable */
     for (i = 0; i < INC_ITERATIONS; i++) {
-        __sync_add_and_fetch(&counter, 1);
-//counter += INCREMENT; // You need to replace this
+    
+        counter += INCREMENT; // You need to replace this
     }
 
     return NULL;
@@ -93,8 +93,8 @@ dec_cas(void *arg __attribute__((unused)))
     /* TODO 2: Use the compare and swap primitive to manipulate the shared
      * variable */
     for (i = 0; i < DEC_ITERATIONS; i++) {
-        __sync_sub_and_fetch(&counter, 1);
-        //  counter += DECREMENT; // You need to replace this
+     
+        counter += DECREMENT; // You need to replace this
     }
 
     return NULL;
@@ -110,7 +110,8 @@ inc_atomic(void *arg __attribute__((unused)))
 
     /* TODO 3: Use atomic primitives to manipulate the shared variable */
     for (i = 0; i < INC_ITERATIONS; i++) {
-        counter += DECREMENT; // You need to replace this
+        __sync_add_and_fetch(&counter, 1);
+//counter += DECREMENT; // You need to replace this
     }
 
     return NULL;
@@ -123,7 +124,8 @@ dec_atomic(void *arg __attribute__((unused)))
 
     /* TODO 3: Use atomic primitives to manipulate the shared variable */
     for (i = 0; i < DEC_ITERATIONS; i++) {
-        counter += DECREMENT; // You need to replace this
+        __sync_sub_and_fetch(&counter, 1);
+        //counter += DECREMENT; // You need to replace this
     }
 
     return NULL;
