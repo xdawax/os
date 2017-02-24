@@ -36,7 +36,7 @@ threadA(void *param __attribute__((unused)))
         printf("threadA --> %d iteration\n", i);
       
         sem_post(&mutex);
-        sleep(2);
+        sleep(0);
     }
 
     pthread_exit(0);
@@ -54,7 +54,7 @@ threadB(void *param  __attribute__((unused)))
         printf("threadB --> %d iteration\n", i);
    
         sem_post(&mutex);
-        sleep(2);
+        sleep(0);
     }
 
     pthread_exit(0);
