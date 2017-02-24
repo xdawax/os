@@ -78,8 +78,10 @@ inc_cas(void *arg __attribute__((unused)))
     /* TODO 2: Use the compare and swap primitive to manipulate the shared
      * variable */
     for (i = 0; i < INC_ITERATIONS; i++) {
-    
-        counter += INCREMENT; // You need to replace this
+
+//        Tanken är att vi ska sitta i loopen tills dess att comp_swap lyckas med att ändra på värdet
+        while (!__sync_bool_compare_and_swap(&counter, counter, counter+INCREMENT));
+        //  counter += INCREMENT; // You need to replace this
     }
 
     return NULL;
@@ -93,8 +95,9 @@ dec_cas(void *arg __attribute__((unused)))
     /* TODO 2: Use the compare and swap primitive to manipulate the shared
      * variable */
     for (i = 0; i < DEC_ITERATIONS; i++) {
-     
-        counter += DECREMENT; // You need to replace this
+//        Tanken är att vi ska sitta i loopen tills dess att comp_swap lyckas med att ändra på värdet
+        while(!(__sync_bool_compare_and_swap(&counter, counter, counter-DECREMENT)));
+        //        counter += DECREMENT; // You need to replace this
     }
 
     return NULL;
@@ -110,7 +113,7 @@ inc_atomic(void *arg __attribute__((unused)))
 
     /* TODO 3: Use atomic primitives to manipulate the shared variable */
     for (i = 0; i < INC_ITERATIONS; i++) {
-        __sync_add_and_fetch(&counter, 1);
+        __sync_add_and_fetch(&counter, INCREMENT);
 //counter += DECREMENT; // You need to replace this
     }
 
@@ -124,7 +127,7 @@ dec_atomic(void *arg __attribute__((unused)))
 
     /* TODO 3: Use atomic primitives to manipulate the shared variable */
     for (i = 0; i < DEC_ITERATIONS; i++) {
-        __sync_sub_and_fetch(&counter, 1);
+        __sync_sub_and_fetch(&counter, DECREMENT);
         //counter += DECREMENT; // You need to replace this
     }
 
