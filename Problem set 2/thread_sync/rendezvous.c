@@ -36,7 +36,7 @@ threadA(void *param __attribute__((unused)))
         printf("threadA --> %d iteration\n", i);
       
         sem_post(&mutex);
-        sleep(0);
+        sleep(2);
     }
 
     pthread_exit(0);
@@ -54,7 +54,7 @@ threadB(void *param  __attribute__((unused)))
         printf("threadB --> %d iteration\n", i);
    
         sem_post(&mutex);
-        sleep(0);
+        sleep(2);
     }
 
     pthread_exit(0);
@@ -72,18 +72,20 @@ main()
         perror("Failed to init the semaphore\n");
     }
     
-   
-    if (pthread_create(&tidA, NULL, threadA, NULL) ||
-        pthread_create(&tidB, NULL, threadB, NULL)) {
-        perror("pthread_create");
-        abort();
+    for (int i = 0; i < 100; i++) {
+        
+    
+        if (pthread_create(&tidA, NULL, threadA, NULL) ||
+            pthread_create(&tidB, NULL, threadB, NULL)) {
+            perror("pthread_create");
+            abort();
+        }
+        if (pthread_join(tidA, NULL) != 0 ||
+            pthread_join(tidB, NULL) != 0) {
+            perror("pthread_join");
+            abort();
+        }
     }
-    if (pthread_join(tidA, NULL) != 0 ||
-        pthread_join(tidB, NULL) != 0) {
-        perror("pthread_join");
-        abort();
-    }
-
     sem_destroy(&mutex);
 
     return 0;
