@@ -166,11 +166,11 @@ void create_pipe(enum cmd_pos pos, int new_pipe[]) {
     //         create a pipe for all but the last command.
 
     if (pos == last || pos == single) {
-        printf("create_pipe last or single\n");
+        //      printf("create_pipe last or single\n");
         return;
     }
     else {
-        printf("create_pipe middle\n");
+        //printf("create_pipe middle\n");
         int pipe_val = pipe(new_pipe);
         if (pipe_val < 0) {
             assert(false);
@@ -223,8 +223,7 @@ void parent_close_pipes(enum cmd_pos pos, int left_pipe[], int right_pipe[]) {
     // TODO 3: The parent must close un-used pipe descriptors. You need
     // to figure out wich descriptors that must be closes when.
     if (pos == first) {
-        close(left_pipe[0]);
-        close(right_pipe[1]);
+              close(right_pipe[1]);
     }
     else if (pos == middle) {
         close(left_pipe[0]);
@@ -232,13 +231,8 @@ void parent_close_pipes(enum cmd_pos pos, int left_pipe[], int right_pipe[]) {
     }
     else if (pos == last) {
         close(left_pipe[0]);
-        close(right_pipe[1]);
     }
-    
-    /*
-    close(left_pipe[0]);
-    close(right_pipe[1]);
-    */
+
 }
 
 
