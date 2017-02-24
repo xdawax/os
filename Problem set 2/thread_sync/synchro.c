@@ -74,13 +74,15 @@ void *
 inc_cas(void *arg __attribute__((unused)))
 {
     int i;
-
+    int old_count, new_count;
     /* TODO 2: Use the compare and swap primitive to manipulate the shared
      * variable */
     for (i = 0; i < INC_ITERATIONS; i++) {
 
-//        Tanken är att vi ska sitta i loopen tills dess att comp_swap lyckas med att ändra på värdet
-        while (!__sync_bool_compare_and_swap(&counter, counter, counter+INCREMENT));
+        do {
+            old_count = counter;
+            new_count = old_count + INCREMENT;
+        } while (!__sync_bool_compare_and_swap(&counter, old_count, new_count));
         //  counter += INCREMENT; // You need to replace this
     }
 
@@ -91,12 +93,14 @@ void *
 dec_cas(void *arg __attribute__((unused)))
 {
     int i;
-
+    int old_count, new_count;
     /* TODO 2: Use the compare and swap primitive to manipulate the shared
      * variable */
     for (i = 0; i < DEC_ITERATIONS; i++) {
-//        Tanken är att vi ska sitta i loopen tills dess att comp_swap lyckas med att ändra på värdet
-        while(!(__sync_bool_compare_and_swap(&counter, counter, counter-DECREMENT)));
+        do {
+            old_count = counter;
+            new_count = old_count - DECREMENT;
+        } while (!__sync_bool_compare_and_swap(&counter, old_count, new_count));
         //        counter += DECREMENT; // You need to replace this
     }
 
@@ -185,17 +189,17 @@ print_stats(thread_conf_t *threads, int nthreads, int niterations)
 
     printf("Statistics:\n");
     for (int i = 0; i < nthreads; i++) {
-	thread_conf_t *t = &threads[i];
-	printf("\tThread %i: %.4f sec (%.4e iterations/s)\n",
-	       i, t->run_time,
-	       niterations / nthreads / t->run_time);
-	run_time_sum += t->run_time;
+        thread_conf_t *t = &threads[i];
+        printf("\tThread %i: %.4f sec (%.4e iterations/s)\n",
+               i, t->run_time,
+               niterations / nthreads / t->run_time);
+        run_time_sum += t->run_time;
     }
 
     printf("\tAverage execution time: %.4f s\n"
-	   "\tAvergage iterations/second: %.4e\n",
-	   run_time_sum / nthreads,
-	   niterations / nthreads / run_time_sum);
+           "\tAvergage iterations/second: %.4e\n",
+           run_time_sum / nthreads,
+           niterations / nthreads / run_time_sum);
 }
 
 int

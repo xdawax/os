@@ -29,6 +29,7 @@ typedef struct {
 
 
 buffer_t buffer;
+sem_t semaphore;
 
 pthread_t consumer_tid[CONSUMERS], producer_tid[PRODUCERS];
 
