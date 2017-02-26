@@ -29,7 +29,7 @@ typedef struct {
 
 
 buffer_t buffer;
-sem_t semaphore;
+sem_t semaphore, full, empty;
 
 pthread_t consumer_tid[CONSUMERS], producer_tid[PRODUCERS];
 
@@ -45,11 +45,15 @@ insert_item(int item, long int id)
      * access to the buffer and use the existing code to remove an item.
      */
 
-
+    sem_wait(&empty);
+    sem_wait(&semaphore);
+    
     buffer.value[buffer.next_in] = item;
     buffer.next_in = (buffer.next_in + 1) % BUFFER_SIZE;
     printf("producer %ld: inserted %d\n", id, item);
 
+    sem_post(&semaphore);
+    sem_post(&full);
 
     return 0;
 }
@@ -66,11 +70,16 @@ remove_item(int *item, long int id)
      * access to the buffer and use the existing code to remove an item.
      */
 
-
+    sem_wait(&full);
+    sem_wait(&semaphore);
+    
     *item = buffer.value[buffer.next_out];
     buffer.value[buffer.next_out] = -1;
     buffer.next_out = (buffer.next_out + 1) % BUFFER_SIZE;
     printf("consumer %ld: removed %d\n", id, *item);
+
+    sem_post(&semaphore);
+    sem_post(&empty);
 
     return 0;
 }
@@ -91,11 +100,11 @@ producer(void *param)
     printf("producer started\n");
     i = PRODUCER_ITERATIONS;
     while (i--) {
-	sleep(rand() % 3);
+        sleep(rand() % 3);
 
-	item = rand() % 10000;
-	if (insert_item(item, id))
-	    fprintf(stderr, "Error while inserting to buffer\n");
+        item = rand() % 10000;
+        if (insert_item(item, id))
+            fprintf(stderr, "Error while inserting to buffer\n");
     }
 
     pthread_exit(0);
@@ -117,10 +126,10 @@ consumer(void *param)
     printf("consumer started\n");
     i = CONSUMER_ITERATIONS;
     while (i--) {
-	sleep(rand() % 3);
+        sleep(rand() % 3);
 
-	if (remove_item(&item, id))
-	    fprintf(stderr, "Error while removing from buffer\n");
+        if (remove_item(&item, id))
+            fprintf(stderr, "Error while removing from buffer\n");
     }
 
     pthread_exit(0);
@@ -133,32 +142,45 @@ main()
 
     srand(time(NULL));
 
+    if (sem_init(&semaphore, 0, 1) != 0) {
+        perror("Failed to init the semaphore\n");
+    }
+    if (sem_init(&full, 0, BUFFER_SIZE) != 0) {
+        perror("Failed to init the full-semaphore\n");
+    }
+    if (sem_init(&empty, 0, BUFFER_SIZE) != 0) {
+        perror("Failed to init the empty-semaphore\n");
+    }
+
     /* Create the consumer threads */
     for (i = 0; i < CONSUMERS; i++)
-	if (pthread_create(&consumer_tid[i], NULL, consumer, (void *)i) != 0) {
-	    perror("pthread_create");
-	    abort();
-	}
+        if (pthread_create(&consumer_tid[i], NULL, consumer, (void *)i) != 0) {
+            perror("pthread_create");
+            abort();
+        }
     /* Create the producer threads */
     for (i = 0; i < PRODUCERS; i++)
-	if (pthread_create(&producer_tid[i], NULL, producer, (void *)i) != 0) {
-	    perror("pthread_create");
-	    abort();
-	}
+        if (pthread_create(&producer_tid[i], NULL, producer, (void *)i) != 0) {
+            perror("pthread_create");
+            abort();
+        }
 
     /* Wait for them to complete */
     for (i = 0; i < CONSUMERS; i++)
-	if (pthread_join(consumer_tid[i], NULL) != 0) {
-	    perror("pthread_join");
-	    abort();
-	}
+        if (pthread_join(consumer_tid[i], NULL) != 0) {
+            perror("pthread_join");
+            abort();
+        }
     for (i = 0; i < PRODUCERS; i++)
-	if (pthread_join(producer_tid[i], NULL) != 0) {
-	    perror("pthread_join");
-	    abort();
-	}
+        if (pthread_join(producer_tid[i], NULL) != 0) {
+            perror("pthread_join");
+            abort();
+        }
 
-
+    sem_destroy(&semaphore);
+    sem_destroy(&full);
+    sem_destroy(&empty);
+    
     return 0;
 }
 
