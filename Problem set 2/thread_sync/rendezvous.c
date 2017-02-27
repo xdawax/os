@@ -23,7 +23,7 @@
  * predictable way. Both should perform iteration 1 before iteration 2
  * and then 2 before 3 etc. */
 
-sem_t mutex;
+sem_t mutex_A, mutex_B;
 
 void *
 threadA(void *param __attribute__((unused)))
@@ -32,11 +32,11 @@ threadA(void *param __attribute__((unused)))
     
     for (i = 0; i < LOOPS; i++) {
 
-        sem_wait(&mutex);
+        sem_wait(&mutex_A);
         printf("threadA --> %d iteration\n", i);
       
-        sem_post(&mutex);
-        sleep(2);
+        sem_post(&mutex_B);
+      
     }
 
     pthread_exit(0);
@@ -50,11 +50,11 @@ threadB(void *param  __attribute__((unused)))
 
     for (i = 0; i < LOOPS; i++) {
 
-        sem_wait(&mutex);
+        sem_wait(&mutex_B);
         printf("threadB --> %d iteration\n", i);
    
-        sem_post(&mutex);
-        sleep(2);
+        sem_post(&mutex_A);
+      
     }
 
     pthread_exit(0);
@@ -68,7 +68,7 @@ main()
     srand(time(NULL));
     pthread_setconcurrency(3);
 
-    if (sem_init(&mutex, 0, 1) != 0) {
+    if (sem_init(&mutex_A, 0, 1) != 0 || sem_init(&mutex_B, 0, 0) != 0) {
         perror("Failed to init the semaphore\n");
     }
     
@@ -86,7 +86,9 @@ main()
             abort();
         }
     }
-    sem_destroy(&mutex);
+
+    sem_destroy(&mutex_A);
+    sem_destroy(&mutex_B);
 
     return 0;
 }

@@ -51,9 +51,12 @@ insert_item(int item, long int id)
     buffer.value[buffer.next_in] = item;
     buffer.next_in = (buffer.next_in + 1) % BUFFER_SIZE;
     printf("producer %ld: inserted %d\n", id, item);
+    
     sleep(2);
+    
     sem_post(&semaphore);
     sem_post(&full);
+    
     sleep(2);
     return 0;
 }
@@ -77,10 +80,14 @@ remove_item(int *item, long int id)
     buffer.value[buffer.next_out] = -1;
     buffer.next_out = (buffer.next_out + 1) % BUFFER_SIZE;
     printf("consumer %ld: removed %d\n", id, *item);
+    
     sleep(2);
+    
     sem_post(&semaphore);
     sem_post(&empty);
+    
     sleep(2);
+    
     return 0;
 }
 

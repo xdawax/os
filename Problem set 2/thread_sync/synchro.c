@@ -38,15 +38,13 @@ inc_mutex(void *arg __attribute__((unused)))
 {
     int i;
 
+    // inside or outside??, lesser OH if we move outside
     /* TODO 1: Protect access to the shared variable */
-
-    pthread_mutex_lock(&mutex);
-    
     for (i = 0; i < INC_ITERATIONS; i++) {
+        pthread_mutex_lock(&mutex);
         counter += INCREMENT;
+        pthread_mutex_unlock(&mutex);
     }
-
-    pthread_mutex_unlock(&mutex);
     
     return NULL;
 }
@@ -56,13 +54,13 @@ dec_mutex(void *arg __attribute__((unused)))
 {
     int i;
 
-    pthread_mutex_lock(&mutex);
+    // inside or outside??, lesser OH if we move outside
     /* TODO 1: Protect access to the shared variable */
     for (i = 0; i < DEC_ITERATIONS; i++) {
+        pthread_mutex_lock(&mutex);
         counter -= DECREMENT;
+        pthread_mutex_unlock(&mutex);
     }
-
-    pthread_mutex_unlock(&mutex);
        
     return NULL;
 }
@@ -75,10 +73,10 @@ inc_cas(void *arg __attribute__((unused)))
 {
     int i;
     int old_count, new_count;
+    
     /* TODO 2: Use the compare and swap primitive to manipulate the shared
      * variable */
     for (i = 0; i < INC_ITERATIONS; i++) {
-
         do {
             old_count = counter;
             new_count = old_count + INCREMENT;
@@ -117,7 +115,7 @@ inc_atomic(void *arg __attribute__((unused)))
 
     /* TODO 3: Use atomic primitives to manipulate the shared variable */
     for (i = 0; i < INC_ITERATIONS; i++) {
-        __sync_add_and_fetch(&counter, INCREMENT);
+        __sync_add_and_fetch(&counter, INCREMENT);   // adds a memory barrier and increments counter with value of INCREMENT
 //counter += DECREMENT; // You need to replace this
     }
 
@@ -131,7 +129,7 @@ dec_atomic(void *arg __attribute__((unused)))
 
     /* TODO 3: Use atomic primitives to manipulate the shared variable */
     for (i = 0; i < DEC_ITERATIONS; i++) {
-        __sync_sub_and_fetch(&counter, DECREMENT);
+        __sync_sub_and_fetch(&counter, DECREMENT); // adds a memory barrier and decrements counter with value of DECREMENT
         //counter += DECREMENT; // You need to replace this
     }
 
